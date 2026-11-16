@@ -1,4 +1,5 @@
 import express from "express";
+import Instrumento from "./models/Instrumento.js";
 
 const app = express();
 const PORT = 3000;
@@ -7,37 +8,48 @@ const PORT = 3000;
 app.set("view engine", "ejs");
 app.set("views", "./views");
 
-// Array de times conforme especificações da atividade
-const times = [
-    { id: 1, nome: "Grêmio", estadio: "Arena", cidade: "Porto Alegre" },
-    { id: 2, nome: "Juventude", estadio: "Alfredo Jaconi", cidade: "Caxias" },
-    { id: 3, nome: "Barcelona", estadio: "Camp Nou", cidade: "Cataluña" }
-];
+// Middleware para decodificar dados enviados por formulários (POST)
+app.use(express.urlencoded({ extended: true }));
 
-// Rota GET / -> Renderiza index.ejs com mensagem de boas-vindas
+// Rota raiz: redireciona para a listagem de instrumentos
 app.get("/", (req, res) => {
-    res.render("index", { mensagem: "Bem-vindo ao Catálogo de Times Esportivos!" });
+    res.redirect("/instrumento/lst");
 });
 
-// Rota GET /times -> Renderiza times.ejs passando a lista de times
-app.get("/times", (req, res) => {
-    res.render("times", { times });
+// Rota GET: exibe o formulário de cadastro de instrumento
+app.get("/instrumento/add", (req, res) => {
+    res.render("instrumento/add");
 });
 
-// Rota GET /times/:id -> Encontra o time pelo ID e renderiza detalhe.ejs
-app.get("/times/:id", (req, res) => {
-    const idParam = parseInt(req.params.id, 10);
-    const time = times.find(t => t.id === idParam);
-
-    if (!time) {
-        return res.status(404).send(`
-            <h1>Time não encontrado</h1>
-            <p>O time com ID ${req.params.id} não foi localizado em nossa base de dados.</p>
-            <a href="/times">Voltar para a lista de times</a>
+// Rota POST: recebe os dados do formulário e grava no MongoDB
+app.post("/instrumento/add/ok", async (req, res) => {
+    try {
+        const { nome, fabricante, preco, tipo } = req.body;
+        await Instrumento.create({ nome, fabricante, preco, tipo });
+        res.render("instrumento/addok", { nome });
+    } catch (erro) {
+        console.error("Erro ao cadastrar instrumento:", erro);
+        res.status(500).send(`
+            <h2>Erro ao cadastrar instrumento</h2>
+            <p>${erro.message}</p>
+            <a href="/instrumento/add">Tentar novamente</a> | <a href="/instrumento/lst">Voltar para a lista</a>
         `);
     }
+});
 
-    res.render("detalhe", { time });
+// Rota GET: consulta os instrumentos no MongoDB e exibe no template lst.ejs
+app.get("/instrumento/lst", async (req, res) => {
+    try {
+        const instrumentos = await Instrumento.find();
+        res.render("instrumento/lst", { instrumentos });
+    } catch (erro) {
+        console.error("Erro ao listar instrumentos:", erro);
+        res.status(500).send(`
+            <h2>Erro ao carregar lista de instrumentos</h2>
+            <p>${erro.message}</p>
+            <a href="/">Tentar novamente</a>
+        `);
+    }
 });
 
 app.listen(PORT, () => {

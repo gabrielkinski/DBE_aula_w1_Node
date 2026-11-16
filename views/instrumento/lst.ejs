@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Instrumentos</title>
+</head>
+<body>
+    <h2>Lista de Instrumentos</h2>
+
+    <p>
+        <a href="/instrumento/add">+ Cadastrar Novo Instrumento</a>
+    </p>
+
+    <% if (instrumentos && instrumentos.length > 0) { %>
+        <table border="1" cellpadding="8" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Fabricante</th>
+                    <th>Preço (R$)</th>
+                    <th>Tipo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% instrumentos.forEach(i => { %>
+                    <tr>
+                        <td><%= i.nome %></td>
+                        <td><%= i.fabricante %></td>
+                        <td>R$ <%= Number(i.preco).toFixed(2) %></td>
+                        <td><%= i.tipo %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    <% } else { %>
+        <p>Nenhum instrumento cadastrado no momento. Utilize o link acima para adicionar o primeiro!</p>
+    <% } %>
+</body>
+</html>
